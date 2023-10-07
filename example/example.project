@@ -1,0 +1,30 @@
+GLOBAL
+NAME test_project2
+DEM_PATH C:/Users/Uni-Lausanne/Documents/SLBL_failure_surface/Programming/Python/FailureSurfaceAnalysis/example/dem.csv
+
+SLIDE1
+METHOD RANGE
+LEFT_LIM 100
+RIGHT_LIM 500
+TOL 2.0
+
+SLIDE2
+METHOD RANGE
+LEFT_LIM 100
+RIGHT_LIM 400
+TOL 2.0
+
+DISP_VEC
+N_VEC 10
+X_MIN 100
+X_MAX 500
+
+DISP_MODEL
+SLIDES 1;2
+COEFFS 1.538732675989716;4.631133165901916
+METHOD LEAST_SQUARE
+DISP_PATH C:/Users/Uni-Lausanne/Documents/SLBL_failure_surface/Programming/Python/FailureSurfaceAnalysis/example/disp.csv
+ALPHA 12.0
+THETA 35.0
+DELTA 285.0
+
