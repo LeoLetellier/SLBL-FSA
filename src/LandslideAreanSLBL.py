@@ -615,12 +615,16 @@ class DispComp:
             vec = self.area.model.disp_with_def
         # print("vec_los", vec_los)
         for pnt in range(self.area.model.n_vec):
-            angle = abs(atan(vec[pnt, 1] / vec[pnt, 0]) * 180 / pi)
-            vec_local_section = normal_vector_los(90 - angle, self.alpha) * np.linalg.norm(vec[pnt])
-            # print("vec local", vec_local_section)
-            # print("angle", angle)
-            self.disp_model[pnt] = np.dot(vec_local_section, vec_los)
-            # print("dot", np.dot(normal_vector_los(angle, self.alpha), vec_los))
+            if vec[pnt, 0] == 0:
+                #print(">>>> WARNING!!!  || vec[pnt,0]=0 in model.n_vec at index ", pnt)
+                self.disp_model[pnt] = 0
+            else:
+                angle = abs(atan(vec[pnt, 1] / vec[pnt, 0]) * 180 / pi)
+                vec_local_section = normal_vector_los(90 - angle, self.alpha) * np.linalg.norm(vec[pnt])
+                # print("vec local", vec_local_section)
+                # print("angle", angle)
+                self.disp_model[pnt] = np.dot(vec_local_section, vec_los)
+                # print("dot", np.dot(normal_vector_los(angle, self.alpha), vec_los))
         # print(self.disp_model)
         if self.x_data is not None:
             self.disp_model_2_data()
@@ -670,7 +674,9 @@ class DispComp:
         :return: None
         """
         self.deformation = deformation
-        result = least_squares(self.ratio_function, [1.] * len(self.area.model.corresponding_slides))
+        x0 = [1.] * len(self.area.model.corresponding_slides)
+        print("x0 ", x0)
+        result = least_squares(self.ratio_function, x0)
         ratios = result.x
         print("LEAST SQUARE RESULTS:", result)
         print("RATIOS:", ratios)
