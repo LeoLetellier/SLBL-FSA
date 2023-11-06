@@ -1,6 +1,6 @@
 GLOBAL
-NAME test_project2
-DEM_PATH C:/Users/Uni-Lausanne/Documents/SLBL_failure_surface/Programming/Python/FailureSurfaceAnalysis/example/dem.csv
+NAME test_project
+DEM_PATH example/dem.csv
 
 SLIDE1
 METHOD RANGE
@@ -23,7 +23,7 @@ DISP_MODEL
 SLIDES 1;2
 COEFFS 1.538732675989716;4.631133165901916
 METHOD LEAST_SQUARE
-DISP_PATH C:/Users/Uni-Lausanne/Documents/SLBL_failure_surface/Programming/Python/FailureSurfaceAnalysis/example/disp.csv
+DISP_PATH example/disp.csv
 ALPHA 12.0
 THETA 35.0
 DELTA 285.0
