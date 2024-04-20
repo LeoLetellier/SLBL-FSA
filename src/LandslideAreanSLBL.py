@@ -13,6 +13,7 @@ from scipy.stats import linregress
 import scipy.interpolate as itp
 from scipy.optimize import least_squares
 from math import atan
+from matplotlib.colors import LinearSegmentedColormap
 
 from SlblToolKit import *
 
@@ -616,7 +617,7 @@ class DispComp:
         # print("vec_los", vec_los)
         for pnt in range(self.area.model.n_vec):
             if vec[pnt, 0] == 0:
-                #print(">>>> WARNING!!!  || vec[pnt,0]=0 in model.n_vec at index ", pnt)
+                # print(">>>> WARNING!!!  || vec[pnt,0]=0 in model.n_vec at index ", pnt)
                 self.disp_model[pnt] = 0
             else:
                 angle = abs(atan(vec[pnt, 1] / vec[pnt, 0]) * 180 / pi)
@@ -856,6 +857,44 @@ class Graph:
                       label='scale=' + str(amp) + "cm")
         # Be careful of the sign of the displacement
 
+    def plot_model_and_los(self, ax):
+        dv = self.area.model.disp_vec
+        x_model = np.copy(self.area.model.x_reg[1:-1])
+        y_model = np.copy(self.area.model.z_reg[1:-1])
+        u_model = np.copy(dv[:, 0])
+        v_model = np.copy(dv[:, 1])
+
+        vec_los = normal_vector_los(self.area.dc.theta, self.area.dc.delta)
+        vec_section = normal_vector_los(90, self.area.dc.alpha)
+        vec_los_in_section = [np.dot(vec_los, vec_section), vec_los[2]]
+        itp_topo = itp.interp1d(self.area.x, self.area.z)
+        x_los = np.copy(self.area.dc.x_data)
+        y_los = np.copy(itp_topo(self.area.dc.x_data))
+        u_los = np.copy(-vec_los_in_section[0] * self.area.dc.disp_data)
+        v_los = np.copy(-vec_los_in_section[1] * self.area.dc.disp_data)
+
+        x = np.append(x_model, x_los)
+        y = np.append(y_model, y_los)
+        u = np.append(u_model, u_los)
+        v = np.append(v_model, v_los)
+
+        nb = "{:e}".format(np.max(np.sqrt(u ** 2 + v ** 2)))
+        amp = float(nb.split("e")[0][0]) * 10 ** int(nb.split("e")[1])
+        if self.area.model.slope_direction > 0:
+            x = np.append(x, np.min(self.area.x))
+            y = np.append(y, np.max(self.area.z))
+            u = np.append(u, amp)
+            v = np.append(v, 0)
+        else:
+            x = np.append(x, np.max(self.area.x))
+            y = np.append(y, np.max(self.area.z))
+            u = np.append(u, -amp)
+            v = np.append(v, 0)
+        colors = np.append(np.full(x_model.shape, 0), np.append(np.full(x_los.shape, 0.5), np.array(1)))
+        colormap = LinearSegmentedColormap.from_list('quiver_color', ["#000000", "#FF0000", "#00c9ff"])
+        q = ax.quiver(x, y, u, v, color=colormap(colors), angles='xy', scale_units='xy', width=0.0016, headwidth=2,
+                      label='scale=' + str(amp) + "cm")
+
     def plot_corr(self, ax):
         """
         Draw the correlation between data values and model predicted values and comparing to 1:1 line to discuss r²
@@ -935,12 +974,14 @@ class Graph:
         self.is_clear = False
         gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1])
         self.ax1 = self.fig.add_subplot(gs[0])
-        self.plot_model(self.ax1)
+        if self.area.dc.disp_data is None:
+            self.plot_model(self.ax1)
         for sld in self.area.model.corresponding_slides:
             self.plot_slbl(self.ax1, self.area.slides[sld].slbl.slbl_surf, ratio=self.area.slides[sld].disp_ratio)
         self.plot_dem(self.ax1)
         if self.area.dc.disp_data is not None:
-            self.add_los_on_model(self.ax1)
+            self.plot_model_and_los(self.ax1)
+            # self.add_los_on_model(self.ax1)
             self.ax2 = self.fig.add_subplot(gs[1], sharex=self.ax1)
             self.plot_moving_mean(self.ax2)
             self.ax2.set_xlabel("Distance (m)")
