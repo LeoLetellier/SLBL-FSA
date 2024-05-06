@@ -620,12 +620,15 @@ class DispComp:
                 # print(">>>> WARNING!!!  || vec[pnt,0]=0 in model.n_vec at index ", pnt)
                 self.disp_model[pnt] = 0
             else:
-                angle = abs(atan(vec[pnt, 1] / vec[pnt, 0]) * 180 / pi)
-                vec_local_section = normal_vector_los(90 - angle, self.alpha) * np.linalg.norm(vec[pnt])
-                # print("vec local", vec_local_section)
+                l_dir = 1 if vec[pnt, 0] >= 0 else -1
+                angle = atan(vec[pnt, 1] / abs(vec[pnt, 0])) * 180 / pi if vec[pnt, 0] != 0 else 0
+                incidence = angle + pi / 2 if angle > 0 else pi / 2 - angle
+                vec_local_section = normal_vector_los(incidence, l_dir * self.alpha)
+                print("vec local", vec_local_section)
                 # print("angle", angle)
-                self.disp_model[pnt] = np.dot(vec_local_section, vec_los)
-                # print("dot", np.dot(normal_vector_los(angle, self.alpha), vec_los))
+                # print("incidence", incidence)
+                self.disp_model[pnt] = np.dot(vec_local_section, vec_los) * np.linalg.norm(vec[pnt])
+                print("dot", np.dot(normal_vector_los(angle, self.alpha), vec_los))
         # print(self.disp_model)
         if self.x_data is not None:
             self.disp_model_2_data()
@@ -866,7 +869,8 @@ class Graph:
 
         vec_los = normal_vector_los(self.area.dc.theta, self.area.dc.delta)
         vec_section = normal_vector_los(90, self.area.dc.alpha)
-        vec_los_in_section = [np.dot(vec_los, vec_section), vec_los[2]]
+        vec_los_in_section = np.array([np.sign(np.dot(vec_los, vec_section)) * np.sqrt(1 - np.square(vec_los[2])), vec_los[2]])
+        vec_los_in_section *= np.abs(np.dot(vec_los, vec_section))
         itp_topo = itp.interp1d(self.area.x, self.area.z)
         x_los = np.copy(self.area.dc.x_data)
         y_los = np.copy(itp_topo(self.area.dc.x_data))
