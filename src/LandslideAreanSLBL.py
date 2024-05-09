@@ -614,27 +614,21 @@ class DispComp:
             vec = self.area.model.disp_vec
         else:
             vec = self.area.model.disp_with_def
-        # print("vec_los", vec_los)
         for pnt in range(self.area.model.n_vec):
             if vec[pnt, 0] == 0:
-                # print(">>>> WARNING!!!  || vec[pnt,0]=0 in model.n_vec at index ", pnt)
                 self.disp_model[pnt] = 0
             else:
+                # Adjust azimuth
                 l_dir = 1 if vec[pnt, 0] >= 0 else -1
+                # Adjust incidence
                 angle = atan(vec[pnt, 1] / abs(vec[pnt, 0])) * 180 / pi if vec[pnt, 0] != 0 else 0
-                incidence = angle + pi / 2 if angle > 0 else pi / 2 - angle
+                incidence = abs(angle) + pi / 2 if angle > 0 else pi / 2 - abs(angle)
+                # Compute inner product of unit vectors = projection
                 vec_local_section = normal_vector_los(incidence, l_dir * self.alpha)
-                # print("vec local", vec_local_section)
-                # print("angle", angle)
-                # print("incidence", incidence)
+                # Weight by the amplitude of displacement
                 self.disp_model[pnt] = np.dot(vec_local_section, vec_los) * np.linalg.norm(vec[pnt])
-                # print("dot", np.dot(normal_vector_los(angle, self.alpha), vec_los))
-        # print(self.disp_model)
         if self.x_data is not None:
             self.disp_model_2_data()
-        # print(self.disp_model_on_data)
-        # print(self.disp_data)
-        # print("DONE: projection")
 
     def disp_model_2_data(self):
         """
