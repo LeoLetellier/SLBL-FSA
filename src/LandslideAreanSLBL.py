@@ -619,12 +619,12 @@ class DispComp:
                 self.disp_model[pnt] = 0
             else:
                 # Adjust azimuth
-                l_dir = 1 if vec[pnt, 0] >= 0 else -1
+                azimuth = self.alpha if vec[pnt, 0] >= 0 else self.alpha + np.pi
                 # Adjust incidence
                 angle = atan(vec[pnt, 1] / abs(vec[pnt, 0])) * 180 / pi if vec[pnt, 0] != 0 else 0
                 incidence = abs(angle) + pi / 2 if angle > 0 else pi / 2 - abs(angle)
                 # Compute inner product of unit vectors = projection
-                vec_local_section = normal_vector_los(incidence, l_dir * self.alpha)
+                vec_local_section = normal_vector_los(incidence, azimuth)
                 # Weight by the amplitude of displacement
                 self.disp_model[pnt] = np.dot(vec_local_section, vec_los) * np.linalg.norm(vec[pnt])
         if self.x_data is not None:
